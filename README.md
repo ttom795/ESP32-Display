@@ -1,6 +1,8 @@
 # ESP32 Display Cloner
 
-This project demonstrates how to clone and display images on an SP7789 display using an ESP32. It uses the `TJpg_Decoder` library to decode JPEG images and the `TFT_eSPI` library for handling the display.
+This project demonstrates how to clone and display images on an SP7789 display using an ESP32. It uses the `JPEGDEC` library to decode JPEG images and the `TFT_eSPI` library for handling the display.
+
+Update 2024/08/24: Tried using DMA. It didn't really work and I got more of a performance increase from moving the decoding to a seperate core. Currently the limit on framrate is the speed of decoding - it's possible to send and render data at a faster rate, but the decoder doesn't run fast enough to keep up.
 
 ## Requirements
 
@@ -11,7 +13,7 @@ This project demonstrates how to clone and display images on an SP7789 display u
 
 This project requires the following libraries:
 
-- `TJpg_Decoder` for decoding JPEG images
+- `JPEGDEC` for decoding JPEG images
 - `TFT_eSPI` for interfacing with the display
 
 You can install these libraries through the Arduino Library Manager or download them from their respective repositories.
@@ -20,16 +22,17 @@ You can install these libraries through the Arduino Library Manager or download 
 
 ### Libraries
 
-1. Install the `TJpg_Decoder` library. You can find it [here](https://github.com/Bodmer/TJpg_Decoder).
+1. Install the `JPEGDEC` library. You can find it [here](https://github.com/bitbank2/JPEGDEC).
 2. Install the `TFT_eSPI` library. You can find it [here](https://github.com/Bodmer/TFT_eSPI).
 
 ### Configuration
 
 1. Ensure that your `User_Setup.h` file is properly configured for the SP7789 display. 
 
-   - Set the SPI frequency to `80MHz`:
+   - Set the SPI frequency to `80MHz` & enable HSPI (it fixed visual issues for me):
      ```cpp
      #define SPI_FREQUENCY 80000000
+     #define USE_HSPI_PORT
      ```
 
 2. Connect your ESP32 to the SP7789 display according to the wiring diagram provided by the `TFT_eSPI` library documentation.

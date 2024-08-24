@@ -1,46 +1,32 @@
 import serial
-from PIL import Image
-import io
 import mss
-import time
-
-counter = 0
-fps_counter = 0
-start_time = time.time()
+import cv2
+import numpy as np
 
 ser = serial.Serial("/dev/ttyUSB0", 3000000, timeout=1)
+sct = mss.mss()
 
-def send_image_to_esp32():
-    global counter, fps_counter, start_time
-    with mss.mss() as sct:
-        monitor = sct.monitors[1]
-        img = sct.grab(monitor)
-        img = Image.frombytes('RGB', img.size, img.rgb)
-    img.thumbnail((320,170))
+def resize_image():
+    monitor = sct.monitors[1]
+    img = sct.grab(monitor)
+    img_np = np.array(img)
 
-    # Convert image to JPEG format with specified quality
-    with io.BytesIO() as buffer:
-        img.save(buffer, format='JPEG', optimize=True, quality=30)
-        
-        jpeg_buf = buffer.getvalue()
-        data_size = len(jpeg_buf)
-
-    FIXED_SIZE = 6144
-    padded_buf = bytearray(FIXED_SIZE)
-    padded_buf[:data_size] = jpeg_buf
+    img_rgb = cv2.cvtColor(img_np, cv2.COLOR_BGRA2BGR)
+    img = cv2.resize(img_rgb, (320, 170),interpolation=cv2.INTER_AREA)
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 40]
+    buf = cv2.imencode('.jpeg', img, encode_param)[1].tobytes()
     
+    data_size = len(buf)
+    print(data_size)
+    FIXED_SIZE = 10000
+    if data_size > FIXED_SIZE:
+        padded_buf = buf[:FIXED_SIZE]
+    else:
+        padded_buf = bytearray(FIXED_SIZE)
+        padded_buf[:data_size] = buf
     ser.write(padded_buf)
-    counter += 1
-    fps_counter += 1
     
-
-    current_time = time.time()
-    if current_time - start_time >= 1.0:
-        fps = fps_counter / (current_time - start_time)
-        print(f"FPS: {fps:.2f}")
-        print(f"Last image sent: frame {counter}, {data_size} bytes")
-        fps_counter = 0
-        start_time = current_time
-
 while True:
-    send_image_to_esp32()
+    resize_image()
+
+

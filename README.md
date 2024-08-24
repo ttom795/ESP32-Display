@@ -4,7 +4,7 @@ This project demonstrates how to clone and display images on an SP7789 display u
 
 Update 2024/08/24: Tried using DMA. It didn't really work and I got more of a performance increase from moving the decoding to a seperate core. Currently the limit on framrate is the speed of decoding - it's possible to send and render data at a faster rate, but the decoder doesn't run fast enough to keep up.
 
-[![Watch the video](https:/https://img.youtube.com/vi/Y05WvNFZAC0/hqdefault.jpg)](https://youtu.be/Y05WvNFZAC0)
+[![Watch the video](https://img.youtube.com/vi/Y05WvNFZAC0/hqdefault.jpg)](https://youtu.be/Y05WvNFZAC0)
 
 
 ## Requirements
